@@ -68,18 +68,21 @@ func (s *BoldAssetAllocation) Describe() engine.StrategyDescription {
 }
 
 func (s *BoldAssetAllocation) Compute(ctx context.Context, eng *engine.Engine, strategyPortfolio portfolio.Portfolio) error {
-	// 1. Fetch 12-month window of monthly close prices for all universes.
-	offensiveDF, err := s.OffensiveUniverse.Window(ctx, portfolio.Months(12), data.MetricClose)
+	// 1. Fetch 14-month window of monthly close prices for all universes.
+	//    We need 13 monthly data points for Pct(12) and Rolling(13).Mean().
+	//    Using 14 months ensures we always get at least 13 after downsampling,
+	//    even when the window start falls mid-month.
+	offensiveDF, err := s.OffensiveUniverse.Window(ctx, portfolio.Months(14), data.AdjClose)
 	if err != nil {
 		return fmt.Errorf("failed to fetch offensive universe prices: %w", err)
 	}
 
-	defensiveDF, err := s.DefensiveUniverse.Window(ctx, portfolio.Months(12), data.MetricClose)
+	defensiveDF, err := s.DefensiveUniverse.Window(ctx, portfolio.Months(14), data.AdjClose)
 	if err != nil {
 		return fmt.Errorf("failed to fetch defensive universe prices: %w", err)
 	}
 
-	canaryDF, err := s.CanaryUniverse.Window(ctx, portfolio.Months(12), data.MetricClose)
+	canaryDF, err := s.CanaryUniverse.Window(ctx, portfolio.Months(14), data.AdjClose)
 	if err != nil {
 		return fmt.Errorf("failed to fetch canary universe prices: %w", err)
 	}
@@ -110,7 +113,7 @@ func (s *BoldAssetAllocation) Compute(ctx context.Context, eng *engine.Engine, s
 	anyBad := false
 
 	for _, a := range canaryMom.AssetList() {
-		if canaryMom.Value(a, data.MetricClose) < 0 {
+		if canaryMom.Value(a, data.AdjClose) < 0 {
 			anyBad = true
 			break
 		}
@@ -148,7 +151,7 @@ func (s *BoldAssetAllocation) Compute(ctx context.Context, eng *engine.Engine, s
 	sortByScore := func(mom *data.DataFrame) []assetScore {
 		var scores []assetScore
 		for _, a := range mom.AssetList() {
-			scores = append(scores, assetScore{a: a, score: mom.Value(a, data.MetricClose)})
+			scores = append(scores, assetScore{a: a, score: mom.Value(a, data.AdjClose)})
 		}
 
 		sort.Slice(scores, func(i, j int) bool {
