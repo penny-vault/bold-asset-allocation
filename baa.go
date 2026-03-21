@@ -146,6 +146,7 @@ func (s *BoldAssetAllocation) Compute(ctx context.Context, eng *engine.Engine, s
 			}
 		}
 	}
+
 	for _, a := range defensiveMom.AssetList() {
 		for _, m := range defensiveMom.MetricList() {
 			v := defensiveMom.Value(a, m)
