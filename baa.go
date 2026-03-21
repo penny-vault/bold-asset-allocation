@@ -21,13 +21,13 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/penny-vault/pvbt/asset"
 	"github.com/penny-vault/pvbt/data"
 	"github.com/penny-vault/pvbt/engine"
 	"github.com/penny-vault/pvbt/portfolio"
-	"github.com/penny-vault/pvbt/tradecron"
 	"github.com/penny-vault/pvbt/universe"
 )
 
@@ -35,27 +35,19 @@ import (
 var description string
 
 type BoldAssetAllocation struct {
-	OffensiveUniverse universe.Universe `pvbt:"offensive-universe" desc:"Offensive (risky) assets to select from" default:"SPY,QQQ,IWM,VGK,EWJ,VWO,VNQ,DBC,GLD,TLT,HYG,LQD" suggest:"BAA-G12=SPY,QQQ,IWM,VGK,EWJ,VWO,VNQ,DBC,GLD,TLT,HYG,LQD|BAA-G4=QQQ,VWO,VEA,BND"`
-	DefensiveUniverse universe.Universe `pvbt:"defensive-universe" desc:"Defensive assets for risk-off periods" default:"TIP,DBC,BIL,IEF,TLT,LQD,BND" suggest:"BAA-G12=TIP,DBC,BIL,IEF,TLT,LQD,BND|BAA-G4=TIP,DBC,BIL,IEF,TLT,LQD,BND"`
-	CanaryUniverse    universe.Universe `pvbt:"canary-universe" desc:"Canary assets that signal crash protection" default:"SPY,VWO,VEA,BND" suggest:"BAA-G12=SPY,VWO,VEA,BND|BAA-G4=SPY,VWO,VEA,BND"`
-	TopO              int               `pvbt:"top-offensive" desc:"Number of top offensive assets to select" default:"6" suggest:"BAA-G12=6|BAA-G4=1"`
-	TopD              int               `pvbt:"top-defensive" desc:"Number of top defensive assets to select" default:"3" suggest:"BAA-G12=3|BAA-G4=3"`
-	CashTicker        string            `pvbt:"cash-ticker" desc:"Cash asset ticker used as absolute momentum floor for defensive assets" default:"BIL" suggest:"BAA-G12=BIL|BAA-G4=BIL"`
+	OffensiveUniverse universe.Universe `pvbt:"offensive-universe" desc:"Offensive (risky) assets to select from" default:"SPY,QQQ,IWM,VGK,EWJ,VWO,VNQ,DBC,GLD,TLT,HYG,LQD" suggest:"BAA-G12=SPY,QQQ,IWM,VGK,EWJ,VWO,VNQ,DBC,GLD,TLT,HYG,LQD|BAA-G12/T3=SPY,QQQ,IWM,VGK,EWJ,VWO,VNQ,DBC,GLD,TLT,HYG,LQD|BAA-G4=QQQ,VWO,VEA,BND|BAA-G4/T2=QQQ,VWO,VEA,BND"`
+	DefensiveUniverse universe.Universe `pvbt:"defensive-universe" desc:"Defensive assets for risk-off periods" default:"TIP,DBC,BIL,IEF,TLT,LQD,BND" suggest:"BAA-G12=TIP,DBC,BIL,IEF,TLT,LQD,BND|BAA-G12/T3=TIP,DBC,BIL,IEF,TLT,LQD,BND|BAA-G4=TIP,DBC,BIL,IEF,TLT,LQD,BND|BAA-G4/T2=TIP,DBC,BIL,IEF,TLT,LQD,BND"`
+	CanaryUniverse    universe.Universe `pvbt:"canary-universe" desc:"Canary assets that signal crash protection" default:"SPY,VWO,VEA,BND" suggest:"BAA-G12=SPY,VWO,VEA,BND|BAA-G12/T3=SPY,VWO,VEA,BND|BAA-G4=SPY,VWO,VEA,BND|BAA-G4/T2=SPY,VWO,VEA,BND"`
+	TopO              int               `pvbt:"top-offensive" desc:"Number of top offensive assets to select" default:"6" suggest:"BAA-G12=6|BAA-G12/T3=3|BAA-G4=1|BAA-G4/T2=2"`
+	TopD              int               `pvbt:"top-defensive" desc:"Number of top defensive assets to select" default:"3" suggest:"BAA-G12=3|BAA-G12/T3=3|BAA-G4=3|BAA-G4/T2=3"`
+	CashTicker        string            `pvbt:"cash-ticker" desc:"Cash asset ticker used as absolute momentum floor for defensive assets" default:"BIL" suggest:"BAA-G12=BIL|BAA-G12/T3=BIL|BAA-G4=BIL|BAA-G4/T2=BIL"`
 }
 
 func (s *BoldAssetAllocation) Name() string {
 	return "Bold Asset Allocation"
 }
 
-func (s *BoldAssetAllocation) Setup(eng *engine.Engine) {
-	tc, err := tradecron.New("@monthend", tradecron.MarketHours{Open: 930, Close: 1600})
-	if err != nil {
-		panic(err)
-	}
-
-	eng.Schedule(tc)
-	eng.SetBenchmark(eng.Asset("VFINX"))
-}
+func (s *BoldAssetAllocation) Setup(_ *engine.Engine) {}
 
 func (s *BoldAssetAllocation) Describe() engine.StrategyDescription {
 	return engine.StrategyDescription{
@@ -64,10 +56,12 @@ func (s *BoldAssetAllocation) Describe() engine.StrategyDescription {
 		Source:      "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4166845",
 		Version:     "1.0.0",
 		VersionDate: time.Date(2026, 3, 14, 0, 0, 0, 0, time.UTC),
+		Schedule:    "@monthend",
+		Benchmark:   "VFINX",
 	}
 }
 
-func (s *BoldAssetAllocation) Compute(ctx context.Context, eng *engine.Engine, strategyPortfolio portfolio.Portfolio) error {
+func (s *BoldAssetAllocation) Compute(ctx context.Context, eng *engine.Engine, strategyPortfolio portfolio.Portfolio, batch *portfolio.Batch) error {
 	// 1. Fetch 14-month window of monthly close prices for all universes.
 	//    We need 13 monthly data points for Pct(12) and Rolling(13).Mean().
 	//    Using 14 months ensures we always get at least 13 after downsampling,
@@ -107,7 +101,14 @@ func (s *BoldAssetAllocation) Compute(ctx context.Context, eng *engine.Engine, s
 		return nil
 	}
 
-	canaryMom.Annotate(strategyPortfolio)
+	for _, a := range canaryMom.AssetList() {
+		for _, m := range canaryMom.MetricList() {
+			v := canaryMom.Value(a, m)
+			if !math.IsNaN(v) {
+				batch.Annotate(a.Ticker+"/"+string(m), strconv.FormatFloat(v, 'f', -1, 64))
+			}
+		}
+	}
 
 	// Check if ANY canary asset has negative absolute momentum (B=1).
 	anyBad := false
@@ -119,14 +120,12 @@ func (s *BoldAssetAllocation) Compute(ctx context.Context, eng *engine.Engine, s
 		}
 	}
 
-	ts := eng.CurrentDate().Unix()
-
 	regime := "offensive"
 	if anyBad {
 		regime = "defensive"
 	}
 
-	strategyPortfolio.Annotate(ts, "regime", regime)
+	batch.Annotate("regime", regime)
 
 	// 4. Compute SMA(12) relative momentum for offensive and defensive universes.
 	offensiveMom := momentumSMA12(offensiveMonthly)
@@ -139,8 +138,22 @@ func (s *BoldAssetAllocation) Compute(ctx context.Context, eng *engine.Engine, s
 		return nil
 	}
 
-	offensiveMom.Annotate(strategyPortfolio)
-	defensiveMom.Annotate(strategyPortfolio)
+	for _, a := range offensiveMom.AssetList() {
+		for _, m := range offensiveMom.MetricList() {
+			v := offensiveMom.Value(a, m)
+			if !math.IsNaN(v) {
+				batch.Annotate(a.Ticker+"/"+string(m), strconv.FormatFloat(v, 'f', -1, 64))
+			}
+		}
+	}
+	for _, a := range defensiveMom.AssetList() {
+		for _, m := range defensiveMom.MetricList() {
+			v := defensiveMom.Value(a, m)
+			if !math.IsNaN(v) {
+				batch.Annotate(a.Ticker+"/"+string(m), strconv.FormatFloat(v, 'f', -1, 64))
+			}
+		}
+	}
 
 	// Helper: sort assets by momentum score descending.
 	type assetScore struct {
@@ -220,7 +233,7 @@ func (s *BoldAssetAllocation) Compute(ctx context.Context, eng *engine.Engine, s
 		justification = fmt.Sprintf("defensive: top %d by SMA(12), cash=%s", topD, s.CashTicker)
 	}
 
-	strategyPortfolio.Annotate(ts, "justification", justification)
+	batch.Annotate("justification", justification)
 
 	allocation := portfolio.Allocation{
 		Date:          eng.CurrentDate(),
@@ -228,7 +241,7 @@ func (s *BoldAssetAllocation) Compute(ctx context.Context, eng *engine.Engine, s
 		Justification: justification,
 	}
 
-	if err := strategyPortfolio.RebalanceTo(ctx, allocation); err != nil {
+	if err := batch.RebalanceTo(ctx, allocation); err != nil {
 		return fmt.Errorf("rebalance failed: %w", err)
 	}
 
