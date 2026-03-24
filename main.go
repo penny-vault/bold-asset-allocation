@@ -15,8 +15,11 @@
 
 package main
 
-import "github.com/penny-vault/pvbt/cli"
+import (
+	"github.com/penny-vault/bold-asset-allocation/baa"
+	"github.com/penny-vault/pvbt/cli"
+)
 
 func main() {
-	cli.Run(&BoldAssetAllocation{})
+	cli.Run(&baa.BoldAssetAllocation{})
 }
