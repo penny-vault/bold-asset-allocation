@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/penny-vault/bold-asset-allocation/baa"
+	"github.com/penny-vault/pvbt/asset"
 	"github.com/penny-vault/pvbt/data"
 	"github.com/penny-vault/pvbt/engine"
 	"github.com/penny-vault/pvbt/portfolio"
@@ -77,7 +78,7 @@ var _ = Describe("BoldAssetAllocation", func() {
 
 		tickers := map[string]bool{}
 		for _, t := range txns {
-			if t.Type == portfolio.BuyTransaction || t.Type == portfolio.SellTransaction {
+			if t.Type == asset.BuyTransaction || t.Type == asset.SellTransaction {
 				tickers[t.Asset.Ticker] = true
 			}
 		}
@@ -104,13 +105,13 @@ var _ = Describe("BoldAssetAllocation", func() {
 
 		type trade struct {
 			date   string
-			txType portfolio.TransactionType
+			txType asset.TransactionType
 			ticker string
 		}
 
 		var trades []trade
 		for _, t := range txns {
-			if t.Type == portfolio.BuyTransaction || t.Type == portfolio.SellTransaction {
+			if t.Type == asset.BuyTransaction || t.Type == asset.SellTransaction {
 				trades = append(trades, trade{
 					date:   t.Date.In(nyc).Format("2006-01-02"),
 					txType: t.Type,
@@ -133,139 +134,139 @@ var _ = Describe("BoldAssetAllocation", func() {
 
 		expected := []trade{
 			// 2024-06-28: defensive (canary negative) -> BIL, LQD
-			{"2024-06-28", portfolio.BuyTransaction, "BIL"},
-			{"2024-06-28", portfolio.BuyTransaction, "LQD"},
+			{"2024-06-28", asset.BuyTransaction, "BIL"},
+			{"2024-06-28", asset.BuyTransaction, "LQD"},
 			// 2024-07-31: offensive -> top 6
-			{"2024-07-31", portfolio.SellTransaction, "BIL"},
-			{"2024-07-31", portfolio.SellTransaction, "LQD"},
-			{"2024-07-31", portfolio.BuyTransaction, "EWJ"},
-			{"2024-07-31", portfolio.BuyTransaction, "GLD"},
-			{"2024-07-31", portfolio.BuyTransaction, "IWM"},
-			{"2024-07-31", portfolio.BuyTransaction, "QQQ"},
-			{"2024-07-31", portfolio.BuyTransaction, "SPY"},
-			{"2024-07-31", portfolio.BuyTransaction, "VNQ"},
+			{"2024-07-31", asset.SellTransaction, "BIL"},
+			{"2024-07-31", asset.SellTransaction, "LQD"},
+			{"2024-07-31", asset.BuyTransaction, "EWJ"},
+			{"2024-07-31", asset.BuyTransaction, "GLD"},
+			{"2024-07-31", asset.BuyTransaction, "IWM"},
+			{"2024-07-31", asset.BuyTransaction, "QQQ"},
+			{"2024-07-31", asset.BuyTransaction, "SPY"},
+			{"2024-07-31", asset.BuyTransaction, "VNQ"},
 			// 2024-08-30: offensive rebalance
-			{"2024-08-30", portfolio.SellTransaction, "EWJ"},
-			{"2024-08-30", portfolio.SellTransaction, "VNQ"},
-			{"2024-08-30", portfolio.BuyTransaction, "IWM"},
-			{"2024-08-30", portfolio.BuyTransaction, "QQQ"},
-			{"2024-08-30", portfolio.BuyTransaction, "VGK"},
+			{"2024-08-30", asset.SellTransaction, "EWJ"},
+			{"2024-08-30", asset.SellTransaction, "VNQ"},
+			{"2024-08-30", asset.BuyTransaction, "IWM"},
+			{"2024-08-30", asset.BuyTransaction, "QQQ"},
+			{"2024-08-30", asset.BuyTransaction, "VGK"},
 			// 2024-09-30: offensive rebalance
-			{"2024-09-30", portfolio.SellTransaction, "GLD"},
-			{"2024-09-30", portfolio.SellTransaction, "VGK"},
-			{"2024-09-30", portfolio.BuyTransaction, "IWM"},
-			{"2024-09-30", portfolio.BuyTransaction, "VWO"},
+			{"2024-09-30", asset.SellTransaction, "GLD"},
+			{"2024-09-30", asset.SellTransaction, "VGK"},
+			{"2024-09-30", asset.BuyTransaction, "IWM"},
+			{"2024-09-30", asset.BuyTransaction, "VWO"},
 			// 2024-10-31: defensive -> BIL, LQD
-			{"2024-10-31", portfolio.SellTransaction, "GLD"},
-			{"2024-10-31", portfolio.SellTransaction, "IWM"},
-			{"2024-10-31", portfolio.SellTransaction, "QQQ"},
-			{"2024-10-31", portfolio.SellTransaction, "SPY"},
-			{"2024-10-31", portfolio.SellTransaction, "VNQ"},
-			{"2024-10-31", portfolio.SellTransaction, "VWO"},
-			{"2024-10-31", portfolio.BuyTransaction, "BIL"},
-			{"2024-10-31", portfolio.BuyTransaction, "LQD"},
+			{"2024-10-31", asset.SellTransaction, "GLD"},
+			{"2024-10-31", asset.SellTransaction, "IWM"},
+			{"2024-10-31", asset.SellTransaction, "QQQ"},
+			{"2024-10-31", asset.SellTransaction, "SPY"},
+			{"2024-10-31", asset.SellTransaction, "VNQ"},
+			{"2024-10-31", asset.SellTransaction, "VWO"},
+			{"2024-10-31", asset.BuyTransaction, "BIL"},
+			{"2024-10-31", asset.BuyTransaction, "LQD"},
 			// 2024-11-29: offensive -> top 6
-			{"2024-11-29", portfolio.SellTransaction, "BIL"},
-			{"2024-11-29", portfolio.SellTransaction, "LQD"},
-			{"2024-11-29", portfolio.BuyTransaction, "GLD"},
-			{"2024-11-29", portfolio.BuyTransaction, "IWM"},
-			{"2024-11-29", portfolio.BuyTransaction, "QQQ"},
-			{"2024-11-29", portfolio.BuyTransaction, "SPY"},
-			{"2024-11-29", portfolio.BuyTransaction, "VNQ"},
-			{"2024-11-29", portfolio.BuyTransaction, "VWO"},
+			{"2024-11-29", asset.SellTransaction, "BIL"},
+			{"2024-11-29", asset.SellTransaction, "LQD"},
+			{"2024-11-29", asset.BuyTransaction, "GLD"},
+			{"2024-11-29", asset.BuyTransaction, "IWM"},
+			{"2024-11-29", asset.BuyTransaction, "QQQ"},
+			{"2024-11-29", asset.BuyTransaction, "SPY"},
+			{"2024-11-29", asset.BuyTransaction, "VNQ"},
+			{"2024-11-29", asset.BuyTransaction, "VWO"},
 			// 2024-12-31: defensive -> BIL (all cash)
-			{"2024-12-31", portfolio.SellTransaction, "GLD"},
-			{"2024-12-31", portfolio.SellTransaction, "IWM"},
-			{"2024-12-31", portfolio.SellTransaction, "QQQ"},
-			{"2024-12-31", portfolio.SellTransaction, "SPY"},
-			{"2024-12-31", portfolio.SellTransaction, "VNQ"},
-			{"2024-12-31", portfolio.SellTransaction, "VWO"},
-			{"2024-12-31", portfolio.BuyTransaction, "BIL"},
+			{"2024-12-31", asset.SellTransaction, "GLD"},
+			{"2024-12-31", asset.SellTransaction, "IWM"},
+			{"2024-12-31", asset.SellTransaction, "QQQ"},
+			{"2024-12-31", asset.SellTransaction, "SPY"},
+			{"2024-12-31", asset.SellTransaction, "VNQ"},
+			{"2024-12-31", asset.SellTransaction, "VWO"},
+			{"2024-12-31", asset.BuyTransaction, "BIL"},
 			// 2025-01-31: offensive -> top 6
-			{"2025-01-31", portfolio.SellTransaction, "BIL"},
-			{"2025-01-31", portfolio.BuyTransaction, "GLD"},
-			{"2025-01-31", portfolio.BuyTransaction, "HYG"},
-			{"2025-01-31", portfolio.BuyTransaction, "IWM"},
-			{"2025-01-31", portfolio.BuyTransaction, "QQQ"},
-			{"2025-01-31", portfolio.BuyTransaction, "SPY"},
-			{"2025-01-31", portfolio.BuyTransaction, "VWO"},
+			{"2025-01-31", asset.SellTransaction, "BIL"},
+			{"2025-01-31", asset.BuyTransaction, "GLD"},
+			{"2025-01-31", asset.BuyTransaction, "HYG"},
+			{"2025-01-31", asset.BuyTransaction, "IWM"},
+			{"2025-01-31", asset.BuyTransaction, "QQQ"},
+			{"2025-01-31", asset.BuyTransaction, "SPY"},
+			{"2025-01-31", asset.BuyTransaction, "VWO"},
 			// 2025-02-28: offensive rebalance
-			{"2025-02-28", portfolio.SellTransaction, "HYG"},
-			{"2025-02-28", portfolio.SellTransaction, "IWM"},
-			{"2025-02-28", portfolio.SellTransaction, "VWO"},
-			{"2025-02-28", portfolio.BuyTransaction, "QQQ"},
-			{"2025-02-28", portfolio.BuyTransaction, "VGK"},
-			{"2025-02-28", portfolio.BuyTransaction, "VNQ"},
+			{"2025-02-28", asset.SellTransaction, "HYG"},
+			{"2025-02-28", asset.SellTransaction, "IWM"},
+			{"2025-02-28", asset.SellTransaction, "VWO"},
+			{"2025-02-28", asset.BuyTransaction, "QQQ"},
+			{"2025-02-28", asset.BuyTransaction, "VGK"},
+			{"2025-02-28", asset.BuyTransaction, "VNQ"},
 			// 2025-03-31: defensive -> DBC, IEF, TIP
-			{"2025-03-31", portfolio.SellTransaction, "GLD"},
-			{"2025-03-31", portfolio.SellTransaction, "HYG"},
-			{"2025-03-31", portfolio.SellTransaction, "QQQ"},
-			{"2025-03-31", portfolio.SellTransaction, "SPY"},
-			{"2025-03-31", portfolio.SellTransaction, "VGK"},
-			{"2025-03-31", portfolio.SellTransaction, "VNQ"},
-			{"2025-03-31", portfolio.BuyTransaction, "DBC"},
-			{"2025-03-31", portfolio.BuyTransaction, "IEF"},
-			{"2025-03-31", portfolio.BuyTransaction, "TIP"},
+			{"2025-03-31", asset.SellTransaction, "GLD"},
+			{"2025-03-31", asset.SellTransaction, "HYG"},
+			{"2025-03-31", asset.SellTransaction, "QQQ"},
+			{"2025-03-31", asset.SellTransaction, "SPY"},
+			{"2025-03-31", asset.SellTransaction, "VGK"},
+			{"2025-03-31", asset.SellTransaction, "VNQ"},
+			{"2025-03-31", asset.BuyTransaction, "DBC"},
+			{"2025-03-31", asset.BuyTransaction, "IEF"},
+			{"2025-03-31", asset.BuyTransaction, "TIP"},
 			// 2025-04-30: defensive rebalance -> BND, IEF, TIP
-			{"2025-04-30", portfolio.SellTransaction, "DBC"},
-			{"2025-04-30", portfolio.SellTransaction, "IEF"},
-			{"2025-04-30", portfolio.SellTransaction, "TIP"},
-			{"2025-04-30", portfolio.BuyTransaction, "BND"},
+			{"2025-04-30", asset.SellTransaction, "DBC"},
+			{"2025-04-30", asset.SellTransaction, "IEF"},
+			{"2025-04-30", asset.SellTransaction, "TIP"},
+			{"2025-04-30", asset.BuyTransaction, "BND"},
 			// 2025-05-30: defensive -> all cash (BIL)
-			{"2025-05-30", portfolio.SellTransaction, "BND"},
-			{"2025-05-30", portfolio.SellTransaction, "IEF"},
-			{"2025-05-30", portfolio.SellTransaction, "TIP"},
-			{"2025-05-30", portfolio.BuyTransaction, "BIL"},
+			{"2025-05-30", asset.SellTransaction, "BND"},
+			{"2025-05-30", asset.SellTransaction, "IEF"},
+			{"2025-05-30", asset.SellTransaction, "TIP"},
+			{"2025-05-30", asset.BuyTransaction, "BIL"},
 			// 2025-06-30: offensive -> top 6
-			{"2025-06-30", portfolio.SellTransaction, "BIL"},
-			{"2025-06-30", portfolio.BuyTransaction, "EWJ"},
-			{"2025-06-30", portfolio.BuyTransaction, "GLD"},
-			{"2025-06-30", portfolio.BuyTransaction, "QQQ"},
-			{"2025-06-30", portfolio.BuyTransaction, "SPY"},
-			{"2025-06-30", portfolio.BuyTransaction, "VGK"},
-			{"2025-06-30", portfolio.BuyTransaction, "VWO"},
+			{"2025-06-30", asset.SellTransaction, "BIL"},
+			{"2025-06-30", asset.BuyTransaction, "EWJ"},
+			{"2025-06-30", asset.BuyTransaction, "GLD"},
+			{"2025-06-30", asset.BuyTransaction, "QQQ"},
+			{"2025-06-30", asset.BuyTransaction, "SPY"},
+			{"2025-06-30", asset.BuyTransaction, "VGK"},
+			{"2025-06-30", asset.BuyTransaction, "VWO"},
 			// 2025-07-31: offensive rebalance (minor)
-			{"2025-07-31", portfolio.SellTransaction, "VWO"},
-			{"2025-07-31", portfolio.BuyTransaction, "EWJ"},
-			{"2025-07-31", portfolio.BuyTransaction, "VGK"},
-			{"2025-07-31", portfolio.BuyTransaction, "VWO"},
+			{"2025-07-31", asset.SellTransaction, "VWO"},
+			{"2025-07-31", asset.BuyTransaction, "EWJ"},
+			{"2025-07-31", asset.BuyTransaction, "VGK"},
+			{"2025-07-31", asset.BuyTransaction, "VWO"},
 			// 2025-08-29: minor rebalance
-			{"2025-08-29", portfolio.SellTransaction, "EWJ"},
+			{"2025-08-29", asset.SellTransaction, "EWJ"},
 			// 2025-09-30: rebalance
-			{"2025-09-30", portfolio.SellTransaction, "GLD"},
-			{"2025-09-30", portfolio.BuyTransaction, "EWJ"},
-			{"2025-09-30", portfolio.BuyTransaction, "VGK"},
+			{"2025-09-30", asset.SellTransaction, "GLD"},
+			{"2025-09-30", asset.BuyTransaction, "EWJ"},
+			{"2025-09-30", asset.BuyTransaction, "VGK"},
 			// 2025-10-31: rebalance
-			{"2025-10-31", portfolio.SellTransaction, "EWJ"},
-			{"2025-10-31", portfolio.BuyTransaction, "VGK"},
-			{"2025-10-31", portfolio.BuyTransaction, "VWO"},
+			{"2025-10-31", asset.SellTransaction, "EWJ"},
+			{"2025-10-31", asset.BuyTransaction, "VGK"},
+			{"2025-10-31", asset.BuyTransaction, "VWO"},
 			// 2025-11-28: offensive rotation
-			{"2025-11-28", portfolio.SellTransaction, "GLD"},
-			{"2025-11-28", portfolio.SellTransaction, "SPY"},
-			{"2025-11-28", portfolio.SellTransaction, "VGK"},
-			{"2025-11-28", portfolio.BuyTransaction, "EWJ"},
-			{"2025-11-28", portfolio.BuyTransaction, "IWM"},
-			{"2025-11-28", portfolio.BuyTransaction, "VWO"},
+			{"2025-11-28", asset.SellTransaction, "GLD"},
+			{"2025-11-28", asset.SellTransaction, "SPY"},
+			{"2025-11-28", asset.SellTransaction, "VGK"},
+			{"2025-11-28", asset.BuyTransaction, "EWJ"},
+			{"2025-11-28", asset.BuyTransaction, "IWM"},
+			{"2025-11-28", asset.BuyTransaction, "VWO"},
 			// 2025-12-31: rebalance
-			{"2025-12-31", portfolio.SellTransaction, "GLD"},
-			{"2025-12-31", portfolio.SellTransaction, "VGK"},
-			{"2025-12-31", portfolio.BuyTransaction, "EWJ"},
-			{"2025-12-31", portfolio.BuyTransaction, "IWM"},
-			{"2025-12-31", portfolio.BuyTransaction, "QQQ"},
-			{"2025-12-31", portfolio.BuyTransaction, "VWO"},
+			{"2025-12-31", asset.SellTransaction, "GLD"},
+			{"2025-12-31", asset.SellTransaction, "VGK"},
+			{"2025-12-31", asset.BuyTransaction, "EWJ"},
+			{"2025-12-31", asset.BuyTransaction, "IWM"},
+			{"2025-12-31", asset.BuyTransaction, "QQQ"},
+			{"2025-12-31", asset.BuyTransaction, "VWO"},
 			// 2026-01-30: offensive rotation
-			{"2026-01-30", portfolio.SellTransaction, "GLD"},
-			{"2026-01-30", portfolio.SellTransaction, "QQQ"},
-			{"2026-01-30", portfolio.BuyTransaction, "DBC"},
-			{"2026-01-30", portfolio.BuyTransaction, "VGK"},
-			{"2026-01-30", portfolio.BuyTransaction, "VWO"},
+			{"2026-01-30", asset.SellTransaction, "GLD"},
+			{"2026-01-30", asset.SellTransaction, "QQQ"},
+			{"2026-01-30", asset.BuyTransaction, "DBC"},
+			{"2026-01-30", asset.BuyTransaction, "VGK"},
+			{"2026-01-30", asset.BuyTransaction, "VWO"},
 			// 2026-02-27: rebalance
-			{"2026-02-27", portfolio.SellTransaction, "EWJ"},
-			{"2026-02-27", portfolio.SellTransaction, "GLD"},
-			{"2026-02-27", portfolio.BuyTransaction, "DBC"},
-			{"2026-02-27", portfolio.BuyTransaction, "IWM"},
-			{"2026-02-27", portfolio.BuyTransaction, "VGK"},
-			{"2026-02-27", portfolio.BuyTransaction, "VWO"},
+			{"2026-02-27", asset.SellTransaction, "EWJ"},
+			{"2026-02-27", asset.SellTransaction, "GLD"},
+			{"2026-02-27", asset.BuyTransaction, "DBC"},
+			{"2026-02-27", asset.BuyTransaction, "IWM"},
+			{"2026-02-27", asset.BuyTransaction, "VGK"},
+			{"2026-02-27", asset.BuyTransaction, "VWO"},
 		}
 
 		Expect(trades).To(HaveLen(len(expected)))
